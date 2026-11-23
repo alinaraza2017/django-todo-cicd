@@ -17,7 +17,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'docker buildd -t todo .'
+                sh 'docker build -t todo .'
             }
         }
 
@@ -29,8 +29,26 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh 'docker rm -f todo_container || true'
-                sh 'docker run -d --name todo_container -p 8000:8000 todo'
+                sh '''
+                    # purane containers hatao (agar hain)
+                    docker rm -f todo_container todo_container1 todo_container2 || true
+
+                    # do containers same image se
+                    docker run -d --name todo_container1 -p 8000:8000 todo
+                    docker run -d --name todo_container2 -p 8001:8000 todo
+
+                    # verify
+                    echo "----- Running containers -----"
+                    docker ps --filter "name=todo_container"
+
+                    # browser mein check karne ka waqt
+                    sleep 60
+
+                    # stop aur remove
+                    docker stop todo_container1 todo_container2
+                    docker rm todo_container1 todo_container2
+                    echo "Both containers stopped and removed"
+                '''
             }
         }
     }
