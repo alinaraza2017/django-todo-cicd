@@ -27,11 +27,13 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+                stage('Deploy') {
             steps {
                 sh '''
-                    # purane containers hatao (agar hain)
-                    docker rm -f todo_container todo_container1 todo_container2 || true
+                    # port 8000/8001 par jo bhi container ho, hata do
+                    docker ps -aq --filter "publish=8000" | xargs -r docker rm -f
+                    docker ps -aq --filter "publish=8001" | xargs -r docker rm -f
+                    docker rm -f todo_container1 todo_container2 || true
 
                     # do containers same image se
                     docker run -d --name todo_container1 -p 8000:8000 todo
@@ -51,7 +53,6 @@ pipeline {
                 '''
             }
         }
-    }
 
     post {
         success {
